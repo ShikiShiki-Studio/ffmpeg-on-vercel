@@ -1,20 +1,27 @@
 {
-  "name": "ffmpeg-demo",
-  "version": "0.1.0",
+  "name": "ffmpeg-convert-monorepo",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "ffmpeg-static": "^5.2.0",
-    "next": "15.3.2"
+    "build": "turbo build",
+    "dev": "turbo dev --concurrency=20",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test": "turbo run test --parallel"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "typescript": "^5"
+    "@turbo/gen": "^2.0.12",
+    "eslint": "^8.57.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.3.2",
+    "turbo": "^2.0.12"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "dependencies": {
   },
   "packageManager": "pnpm@9.10.0"
 }
