@@ -19,9 +19,9 @@
     "node": ">=18"
   },
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
-  "dependencies": {
-  },
+  "dependencies": {},
   "packageManager": "pnpm@9.10.0"
 }

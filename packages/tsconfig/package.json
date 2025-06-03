@@ -1,0 +1,15 @@
+{
+  "name": "@lunesia/tsconfig",
+  "version": "0.0.1",
+  "private": true,
+  "files": [
+    "base.json",
+    "node-library.json",
+    "react-library.json",
+    "react-native.json",
+    "next.json"
+  ],
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
