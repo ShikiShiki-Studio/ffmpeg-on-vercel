@@ -3,6 +3,7 @@ import { spawn } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
+import * as nodeFs from "fs"; // Added for synchronous file check
 
 export const maxDuration = 300;
 
@@ -10,11 +11,60 @@ interface QualitySettings {
   [key: string]: string[];
 }
 
+const listDirRecursive = (
+  dir: string,
+  depth: number,
+  currentDepth = 0,
+  indent = "  "
+) => {
+  if (currentDepth > depth) return;
+  try {
+    if (!nodeFs.existsSync(dir)) {
+      console.log(
+        `[Vercel Debug]${indent.repeat(
+          currentDepth
+        )}  Directory ${dir} does not exist.`
+      );
+      return;
+    }
+    const files = nodeFs.readdirSync(dir, { withFileTypes: true });
+    for (const file of files) {
+      console.log(
+        `[Vercel Debug]${indent.repeat(currentDepth)}  - ${file.name}${
+          file.isDirectory() ? "/" : ""
+        }`
+      );
+      if (file.isDirectory()) {
+        listDirRecursive(
+          path.join(dir, file.name),
+          depth,
+          currentDepth + 1,
+          indent
+        );
+      }
+    }
+  } catch (e) {
+    console.error(
+      `[Vercel Debug]${indent.repeat(currentDepth)}  Error listing ${dir}:`,
+      (e as Error).message
+    );
+  }
+};
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const inputFile = "sample.mp4";
   const format = searchParams.get("format") || "webm";
   const quality = searchParams.get("quality") || "medium";
+
+  const cwd = process.cwd();
+  console.log(`[Vercel Debug] Current Working Directory (CWD): ${cwd}`);
+
+  // console.log("[Vercel Debug] Contents of CWD (.):");
+  // listDirRecursive(".", 1); // List CWD contents, depth 1
+
+  console.log("[Vercel Debug] Contents of parent directory (..):");
+  listDirRecursive("..", 5); // List parent contents, depth 5
 
   if (!inputFile) {
     return NextResponse.json(
@@ -71,11 +121,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           return;
         }
 
-        const process = spawn("./node_modules/ffmpeg-static/ffmpeg", ffmpegArgs, { stdio: 'pipe'});
+        const process = spawn(
+          "./node_modules/ffmpeg-static/ffmpeg",
+          ffmpegArgs,
+          { stdio: "pipe" }
+        );
 
         let stderr = "";
         let isClosed = false;
-        
+
         process.stdout.on("data", (data: Buffer) => {
           if (!isClosed) {
             try {
@@ -85,7 +139,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             }
           }
         });
-        
+
         process.stderr.on("data", (data: Buffer) => {
           stderr += data.toString();
         });
@@ -104,7 +158,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             } else {
               try {
                 if (controller.desiredSize !== null) {
-                  controller.error(new Error(`FFmpeg failed with code ${code}: ${stderr}`));
+                  controller.error(
+                    new Error(`FFmpeg failed with code ${code}: ${stderr}`)
+                  );
                 }
               } catch (error) {
                 // Controller already closed by client
@@ -125,7 +181,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             }
           }
         });
-      }
+      },
     });
 
     // Set appropriate headers for streaming
