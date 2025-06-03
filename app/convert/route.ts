@@ -63,8 +63,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // console.log("[Vercel Debug] Contents of CWD (.):");
   // listDirRecursive(".", 1); // List CWD contents, depth 1
 
-  console.log("[Vercel Debug] Contents of parent directory (..):");
-  listDirRecursive("..", 5); // List parent contents, depth 5
+  console.log("[Vercel Debug] Contents of CWD directory (.):");
+  listDirRecursive(".", 5); // List parent contents, depth 5
 
   if (!inputFile) {
     return NextResponse.json(
